@@ -21,3 +21,5 @@ go install github.com/tatthien/cmdgpt@latest
 ## Usage
 
 Simply run `cmdgpt` and ask for a command.
+
+[![asciicast](https://asciinema.org/a/qJ6e3cTOumURKbPa2bZwG61EK.svg)](https://asciinema.org/a/qJ6e3cTOumURKbPa2bZwG61EK)
