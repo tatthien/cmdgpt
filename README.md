@@ -10,6 +10,14 @@ To use the tool, you need to obtain an API key from OpenAI and set it as an envi
 export OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
+## Installation
+
+### Using go
+
+```
+go install github.com/tatthien/cmdgpt@latest
+```
+
 ## Usage
 
 Simply run `cmdgpt` and ask for a command.
