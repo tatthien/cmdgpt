@@ -13,6 +13,8 @@ import (
 )
 
 var version string
+var green = color.New(color.FgGreen)
+var boldGreen = green.Add(color.Bold)
 
 var app = &cli.App{
 	Name:     "cmdgpt",
@@ -31,9 +33,7 @@ var app = &cli.App{
 			return fmt.Errorf("missing OPENAI_API_KEY")
 		}
 
-		green := color.New(color.FgGreen)
-		green.Add(color.Bold)
-		query := prompt.StringPrompt(green.Sprint("?") + " What's a command would you like to ask?")
+		query := prompt.StringPrompt(boldGreen.Sprint("?") + " What's a command would you like to ask?")
 
 		if query == "" {
 			fmt.Println("There is nothing to ask!")
