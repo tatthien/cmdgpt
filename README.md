@@ -24,6 +24,11 @@ You can download the pre-built binaries for macOS, Linux, and Window from the [r
 
 ## Usage
 
-Simply run `cmdgpt` and ask for a command.
+Simply run `cmdgpt` and ask for a command. You can try to copy one of these following commands to ask:
+
+- search for a string within an output
+- create a post request with curl
+- list all file types with count
+- create a directory and its parent if no exist
 
 [![asciicast](https://asciinema.org/a/qJ6e3cTOumURKbPa2bZwG61EK.svg)](https://asciinema.org/a/qJ6e3cTOumURKbPa2bZwG61EK)
