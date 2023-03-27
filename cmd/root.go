@@ -43,7 +43,7 @@ var app = &cli.App{
 		messages := []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
-				Content: "You are an AI linux commands generator. Your job is to analyze the user's input and convert it to the linux commands. Only response the plain command. Do not reponse the natural language or explaination about the command. Make sure the output is a valid syntax and will not contains any error. Try to figure the best commands that fit the user's input.",
+				Content: "You are an AI linux commands generator. Your job is to analyze the user's input and convert it to the linux commands. Only response the command. Do not reponse the natural language or explaination about the command. Make sure the command is a valid syntax and will not contains any error. Try to figure the best commands that fit the user's input.",
 			},
 			{
 				Role:    openai.ChatMessageRoleUser,
