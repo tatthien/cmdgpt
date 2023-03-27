@@ -18,6 +18,10 @@ export OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 go install github.com/tatthien/cmdgpt@latest
 ```
 
+### Pre-built binaries
+
+You can download the pre-built binaries for macOS, Linux, and Window from the [releases page](https://github.com/tatthien/cmdgpt/releases)
+
 ## Usage
 
 Simply run `cmdgpt` and ask for a command.
