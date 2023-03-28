@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-To use the tool, you need to obtain an API key from OpenAI and set it as an environment variable:
+You need to have `OPENAI_API_KEY` environemnt variable configured.
 
 ```
 export OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
