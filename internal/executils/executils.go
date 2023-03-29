@@ -23,6 +23,12 @@ func WithStdOut(stdout io.Writer) OptionFns {
 	}
 }
 
+func WithDir(d string) OptionFns {
+	return func(o *Option) {
+		o.Cmd.Dir = d
+	}
+}
+
 func Run(cmd string, options ...OptionFns) error {
 	c := exec.Command(cmd)
 

@@ -114,7 +114,7 @@ var app = &cli.App{
 				args = cmds[1:]
 			}
 			if err := executils.Run(
-				cmd,
+				cmds[0],
 				executils.WithArgs(args...),
 				executils.WithStdOut(&stdout),
 			); err != nil {
