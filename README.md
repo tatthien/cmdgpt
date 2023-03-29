@@ -31,4 +31,4 @@ Simply run `cmdgpt` and ask for a command. You can try to copy one of these foll
 - list all file types with count
 - create a directory and its parent if no exist
 
-[![asciicast](https://asciinema.org/a/qJ6e3cTOumURKbPa2bZwG61EK.svg)](https://asciinema.org/a/qJ6e3cTOumURKbPa2bZwG61EK)
+[![asciicast](https://asciinema.org/a/3nFuZGFrsDXcRl7XBvuOfstdU.svg)](https://asciinema.org/a/3nFuZGFrsDXcRl7XBvuOfstdU)
