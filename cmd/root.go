@@ -18,11 +18,18 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var version string
+var version = "dev"
 var green = color.New(color.FgGreen)
 var boldGreen = green.Add(color.Bold)
 var cyan = color.New(color.FgCyan)
 var boldCyan = cyan.Add(color.Bold)
+
+func init() {
+	cli.VersionFlag = &cli.BoolFlag{Name: "version", Aliases: []string{"v"}}
+	cli.VersionPrinter = func(cCtx *cli.Context) {
+		fmt.Fprintf(cCtx.App.Writer, "version=%s\n", cCtx.App.Version)
+	}
+}
 
 var app = &cli.App{
 	Name:     "cmdgpt",
