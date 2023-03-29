@@ -1,13 +1,19 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
+	"strings"
 	"time"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
 	"github.com/sashabaranov/go-openai"
+	"github.com/tatthien/cmdgpt/internal/executils"
 	"github.com/tatthien/cmdgpt/internal/prompt"
 	"github.com/urfave/cli/v2"
 )
@@ -15,6 +21,8 @@ import (
 var version string
 var green = color.New(color.FgGreen)
 var boldGreen = green.Add(color.Bold)
+var cyan = color.New(color.FgCyan)
+var boldCyan = cyan.Add(color.Bold)
 
 var app = &cli.App{
 	Name:     "cmdgpt",
@@ -33,7 +41,7 @@ var app = &cli.App{
 			return fmt.Errorf("missing OPENAI_API_KEY")
 		}
 
-		query := prompt.StringPrompt(boldGreen.Sprint("?") + " What's a command would you like to ask?")
+		query := prompt.StringPrompt("❓ What's a command would you like to ask?")
 
 		if query == "" {
 			fmt.Println("There is nothing to ask!")
@@ -43,7 +51,7 @@ var app = &cli.App{
 		messages := []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
-				Content: "You are an AI linux commands generator. Your job is to analyze the user's input and convert it to the linux commands. Only response the command. Do not reponse the natural language or explaination about the command. Make sure the command is a valid syntax and will not contains any error. Try to figure the best commands that fit the user's input.",
+				Content: "You are a system that parses natural language to linux commands. You may not use natural language in your responses. You can respond with this format: <command>%sep%<explanation>. Only send one command per message.",
 			},
 			{
 				Role:    openai.ChatMessageRoleUser,
@@ -71,7 +79,73 @@ var app = &cli.App{
 			return fmt.Errorf("no answer")
 		}
 
-		color.Cyan(resp.Choices[0].Message.Content)
+		response := resp.Choices[0].Message.Content
+		substrings := strings.Split(response, "%sep%")
+		cmd := ""
+		explanation := "There are no explanations at this moment"
+
+		if len(substrings) == 1 {
+			cmd = substrings[0]
+		} else {
+			cmd = strings.TrimSpace(substrings[0])
+			explanation = strings.TrimSpace(substrings[1])
+		}
+
+		fmt.Printf("💡 %s\n", boldCyan.Sprint("Command"))
+		fmt.Println()
+		fmt.Printf("   %s\n\n", cmd)
+		fmt.Printf("💬 %s\n\n", boldCyan.Sprint("Explanation"))
+		fmt.Printf("   %s\n\n", explanation)
+
+		// Select options
+		answer := ""
+		prompt := &survey.Select{
+			Message: "Select an action",
+			Options: []string{"copy", "run", "cancel"},
+			VimMode: true,
+		}
+		survey.AskOne(prompt, &answer)
+
+		if answer == "run" {
+			cmds := strings.Split(cmd, " ")
+			args := []string{}
+			var stdout bytes.Buffer
+			if len(cmds) > 1 {
+				args = cmds[1:]
+			}
+			if err := executils.Run(
+				cmd,
+				executils.WithArgs(args...),
+				executils.WithStdOut(&stdout),
+			); err != nil {
+				return err
+			}
+			fmt.Println(string(stdout.Bytes()))
+		}
+
+		if answer == "copy" {
+			var copyCmd *exec.Cmd
+			if runtime.GOOS == "darwin" {
+				copyCmd = exec.Command("pbcopy")
+			} else if runtime.GOOS == "linux" {
+				copyCmd = exec.Command("xclip")
+			} else {
+				return fmt.Errorf("copy is not supported in %s", runtime.GOOS)
+			}
+
+			in, err := copyCmd.StdinPipe()
+			if err != nil {
+				return err
+			}
+			if _, err := in.Write([]byte(cmd)); err != nil {
+				return err
+			}
+			if err := copyCmd.Start(); err != nil {
+				return err
+			}
+			fmt.Println("Copied to clipboard")
+		}
+
 		return nil
 	},
 }
