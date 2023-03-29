@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"runtime"
@@ -12,8 +12,8 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
+	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"
-	"github.com/tatthien/cmdgpt/internal/executils"
 	"github.com/tatthien/cmdgpt/internal/prompt"
 	"github.com/urfave/cli/v2"
 )
@@ -108,26 +108,21 @@ var app = &cli.App{
 		answer := ""
 		prompt := &survey.Select{
 			Message: "Select an action",
-			Options: []string{"copy", "run", "cancel"},
+			Options: []string{"run", "copy", "cancel"},
 			VimMode: true,
 		}
 		survey.AskOne(prompt, &answer)
 
 		if answer == "run" {
-			cmds := strings.Split(cmd, " ")
-			args := []string{}
-			var stdout bytes.Buffer
-			if len(cmds) > 1 {
-				args = cmds[1:]
+			strUuid := uuid.New().String()
+			strPath := fmt.Sprintf("/tmp/%s.sh", strUuid)
+			ioutil.WriteFile(strPath, []byte(cmd), 0744)
+			out, err := exec.Command("/bin/bash", strPath).CombinedOutput()
+			if err != nil {
+				return nil
 			}
-			if err := executils.Run(
-				cmds[0],
-				executils.WithArgs(args...),
-				executils.WithStdOut(&stdout),
-			); err != nil {
-				return err
-			}
-			fmt.Println(string(stdout.Bytes()))
+			os.Remove(strPath)
+			fmt.Println(string(out))
 		}
 
 		if answer == "copy" {
