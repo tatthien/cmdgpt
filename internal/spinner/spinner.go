@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"sync"
-	"syscall"
 	"time"
 
 	"golang.org/x/crypto/ssh/terminal"
@@ -34,7 +33,7 @@ func NewSpinner(title string) *Spinner {
 		runChan:   make(chan struct{}),
 	}
 
-	if !terminal.IsTerminal(syscall.Stdout) {
+	if !terminal.IsTerminal(1) {
 		sp.NoTty = true
 	}
 
