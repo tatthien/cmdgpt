@@ -2,6 +2,13 @@
 
 `cmdgpt` is a command line tool that use ChatGPT to generate Linux commands from your natural language.
 
+## Features
+
+- [x] Generate commands based on your input. For example, `show git logs with author and message` => `git log --pretty=format:"%an - %s"`
+- [x] Allow you to `run` or `copy` the reponse command
+- [ ] Auto fix commands
+- [ ] Check if the response commands are safe/risk to run
+
 ## Prerequisites
 
 You need to have `OPENAI_API_KEY` environemnt variable configured.
