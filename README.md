@@ -6,8 +6,8 @@
 
 - [x] Generate commands based on your input. For example, `show git logs with author and message` => `git log --pretty=format:"%an - %s"`
 - [x] Allow you to `run` or `copy` the reponse command
+- [x] Check if the response commands are safe/risk to run
 - [ ] Auto fix commands
-- [ ] Check if the response commands are safe/risk to run
 
 ## Prerequisites
 
