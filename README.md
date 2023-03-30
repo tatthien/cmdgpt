@@ -39,3 +39,7 @@ Simply run `cmdgpt` and ask for a command. You can try to copy one of these foll
 - create a directory and its parent if no exist
 
 [![asciicast](https://asciinema.org/a/3nFuZGFrsDXcRl7XBvuOfstdU.svg)](https://asciinema.org/a/3nFuZGFrsDXcRl7XBvuOfstdU)
+
+## More CLI tools using AI
+
+- [askgpt](https://github.com/tatthien/askgpt) - Ask ChatGPT without leaving your terminal
