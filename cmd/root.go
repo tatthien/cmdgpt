@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"
 	"github.com/tatthien/cmdgpt/internal/prompt"
+	"github.com/tatthien/cmdgpt/internal/spinner"
 	"github.com/urfave/cli/v2"
 )
 
@@ -55,6 +56,8 @@ var app = &cli.App{
 			return nil
 		}
 
+		sp := spinner.StartNew("I'm thinking...")
+
 		messages := []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
@@ -77,6 +80,8 @@ var app = &cli.App{
 				TopP:        1,
 			},
 		)
+
+		sp.Stop() // Stop the spinner
 
 		if err != nil {
 			return fmt.Errorf("chat completion error: %w", err)
@@ -109,6 +114,12 @@ var app = &cli.App{
 		prompt := &survey.Select{
 			Message: "Select an action",
 			Options: []string{"run", "copy", "cancel"},
+			Description: func(value string, index int) string {
+				if value == "run" {
+					return "(At your own risk)"
+				}
+				return ""
+			},
 			VimMode: true,
 		}
 		survey.AskOne(prompt, &answer)
