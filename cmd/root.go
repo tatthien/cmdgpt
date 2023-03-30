@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -24,6 +25,9 @@ var green = color.New(color.FgGreen)
 var boldGreen = green.Add(color.Bold)
 var cyan = color.New(color.FgCyan)
 var boldCyan = cyan.Add(color.Bold)
+var red = color.New(color.FgRed)
+var boldRed = red.Add(color.Bold)
+var isCommandRisk = true
 
 func init() {
 	cli.VersionFlag = &cli.BoolFlag{Name: "version", Aliases: []string{"v"}}
@@ -109,56 +113,111 @@ var app = &cli.App{
 		fmt.Printf("💬 %s\n\n", boldCyan.Sprint("Explanation"))
 		fmt.Printf("   %s\n\n", explanation)
 
-		// Select options
-		answer := ""
-		prompt := &survey.Select{
-			Message: "Select an action",
-			Options: []string{"run", "copy", "cancel"},
-			Description: func(value string, index int) string {
-				if value == "run" {
-					return "(At your own risk)"
+		for {
+			// Select options
+			answer := ""
+			prompt := &survey.Select{
+				Message: "Select an action",
+				Options: []string{"run", "check", "copy", "cancel"},
+				Description: func(value string, index int) string {
+					if value == "run" {
+						if isCommandRisk {
+							return "(At your own risk)"
+						}
+						return "(It's safe to run)"
+					}
+					if value == "check" {
+						return "(Check if the command is safe or risk to run)"
+					}
+					return ""
+				},
+				VimMode: true,
+			}
+			survey.AskOne(prompt, &answer)
+
+			if answer == "cancel" {
+				break
+			}
+
+			if answer == "run" {
+				strUuid := uuid.New().String()
+				strPath := fmt.Sprintf("/tmp/%s.sh", strUuid)
+				ioutil.WriteFile(strPath, []byte(cmd), 0744)
+				out, err := exec.Command("/bin/bash", strPath).CombinedOutput()
+				if err != nil {
+					return nil
 				}
-				return ""
-			},
-			VimMode: true,
+				os.Remove(strPath)
+				fmt.Println(string(out))
+				break
+			}
+
+			if answer == "copy" {
+				var copyCmd *exec.Cmd
+				if runtime.GOOS == "darwin" {
+					copyCmd = exec.Command("pbcopy")
+				} else if runtime.GOOS == "linux" {
+					copyCmd = exec.Command("xclip")
+				} else {
+					return fmt.Errorf("copy is not supported in %s", runtime.GOOS)
+				}
+
+				in, err := copyCmd.StdinPipe()
+				if err != nil {
+					return err
+				}
+				if _, err := in.Write([]byte(cmd)); err != nil {
+					return err
+				}
+				if err := copyCmd.Start(); err != nil {
+					return err
+				}
+				fmt.Println("Copied to clipboard")
+				break
+			}
+
+			if answer == "check" {
+				cksp := spinner.StartNew("I'm checking...")
+				messages := []openai.ChatCompletionMessage{
+					openai.ChatCompletionMessage{
+						Role: openai.ChatMessageRoleSystem,
+						Content: fmt.Sprintf(`Does this command is risk or safe: %s. Response in the format:
+						Type: risk or safe
+						Reason: <short reason if type is 'risk' or 'safe'>
+					`, cmd),
+					},
+				}
+				resp, err = openaiClient.CreateChatCompletion(
+					context.Background(),
+					openai.ChatCompletionRequest{
+						Model:    openai.GPT3Dot5Turbo,
+						Messages: messages,
+					},
+				)
+				cksp.Stop()
+				if err != nil {
+					return err
+				}
+				content := resp.Choices[0].Message.Content
+				reg := regexp.MustCompile("Type:(.+)")
+				matches := reg.FindStringSubmatch(content)
+				commandType := strings.TrimSpace(matches[1])
+				reg = regexp.MustCompile("Reason:(.+)")
+				matches = reg.FindStringSubmatch(content)
+				reason := strings.TrimSpace(matches[1])
+				if strings.ToLower(commandType) == "safe" {
+					isCommandRisk = false
+				}
+				fmt.Printf("Command: %s\n", cmd)
+				if isCommandRisk {
+					fmt.Printf("Type: %s\n", boldRed.Sprint("RISK"))
+				} else {
+					fmt.Printf("Type: %s\n", boldGreen.Sprint("SAFE"))
+				}
+				fmt.Printf("Reason: %s\n", reason)
+				fmt.Println()
+			}
 		}
-		survey.AskOne(prompt, &answer)
-
-		if answer == "run" {
-			strUuid := uuid.New().String()
-			strPath := fmt.Sprintf("/tmp/%s.sh", strUuid)
-			ioutil.WriteFile(strPath, []byte(cmd), 0744)
-			out, err := exec.Command("/bin/bash", strPath).CombinedOutput()
-			if err != nil {
-				return nil
-			}
-			os.Remove(strPath)
-			fmt.Println(string(out))
-		}
-
-		if answer == "copy" {
-			var copyCmd *exec.Cmd
-			if runtime.GOOS == "darwin" {
-				copyCmd = exec.Command("pbcopy")
-			} else if runtime.GOOS == "linux" {
-				copyCmd = exec.Command("xclip")
-			} else {
-				return fmt.Errorf("copy is not supported in %s", runtime.GOOS)
-			}
-
-			in, err := copyCmd.StdinPipe()
-			if err != nil {
-				return err
-			}
-			if _, err := in.Write([]byte(cmd)); err != nil {
-				return err
-			}
-			if err := copyCmd.Start(); err != nil {
-				return err
-			}
-			fmt.Println("Copied to clipboard")
-		}
-
 		return nil
 	},
 }
